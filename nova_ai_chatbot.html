@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>⚡ Nova AI Chatbot</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg:        #080b10;
+    --surface:   #0e1420;
+    --surface2:  #141c2e;
+    --border:    #1e2d48;
+    --accent:    #00d4ff;
+    --accent2:   #7c3aed;
+    --green:     #00ffa3;
+    --red:       #ff4560;
+    --text:      #c8d8f0;
+    --text-dim:  #4a6080;
+    --glow:      0 0 20px rgba(0,212,255,0.25);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0,212,255,0.07) 0%, transparent 60%),
+      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(30,45,72,0.3) 39px, rgba(30,45,72,0.3) 40px),
+      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(30,45,72,0.15) 39px, rgba(30,45,72,0.15) 40px);
+  }
+
+  /* ── Header ── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px;
+    background: rgba(14,20,32,0.95);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(12px);
+    flex-shrink: 0;
+    gap: 12px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+  .logo span.bolt { color: var(--accent); font-size: 1.3rem; }
+  .logo span.groq { color: var(--accent); }
+
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity:1; transform:scale(1); }
+    50%      { opacity:.5; transform:scale(1.3); }
+  }
+
+  /* ── Model Selector ── */
+  .model-bar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .model-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.68rem;
+    padding: 5px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all .2s;
+    white-space: nowrap;
+  }
+  .model-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .model-btn.active {
+    background: rgba(0,212,255,0.1);
+    border-color: var(--accent);
+    color: var(--accent);
+    box-shadow: var(--glow);
+  }
+
+  .header-actions { display: flex; gap: 8px; align-items: center; }
+  .icon-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    width: 34px; height: 34px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .2s;
+    flex-shrink: 0;
+  }
+  .icon-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .icon-btn.danger:hover { border-color: var(--red); color: var(--red); }
+
+  /* ── Chat Window ── */
+  #chat {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    scroll-behavior: smooth;
+  }
+  #chat::-webkit-scrollbar { width: 4px; }
+  #chat::-webkit-scrollbar-track { background: transparent; }
+  #chat::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* Welcome */
+  .welcome {
+    text-align: center;
+    padding: 40px 20px;
+    animation: fadeUp .5s ease both;
+  }
+  .welcome h2 { font-size: 2rem; font-weight: 800; color: var(--accent); margin-bottom: 8px; }
+  .welcome p  { color: var(--text-dim); font-size: .9rem; font-family: 'Space Mono', monospace; }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:20px; }
+  .chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 7px 14px;
+    border-radius: 20px;
+    font-size: .78rem;
+    cursor: pointer;
+    transition: all .2s;
+    font-family: 'Space Mono', monospace;
+  }
+  .chip:hover { border-color: var(--accent); color: var(--accent); background: rgba(0,212,255,0.06); }
+
+  /* Messages */
+  .msg {
+    display: flex;
+    gap: 12px;
+    max-width: 820px;
+    animation: fadeUp .3s ease both;
+  }
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(12px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  .msg.user { flex-direction: row-reverse; align-self: flex-end; }
+  .msg.assistant { align-self: flex-start; }
+
+  .avatar {
+    width: 34px; height: 34px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .msg.user .avatar     { background: rgba(124,58,237,0.2); border: 1px solid var(--accent2); }
+  .msg.assistant .avatar{ background: rgba(0,212,255,0.1);  border: 1px solid var(--accent); }
+
+  .bubble {
+    padding: 12px 16px;
+    border-radius: 12px;
+    line-height: 1.65;
+    font-size: .9rem;
+    max-width: calc(100% - 50px);
+    word-break: break-word;
+  }
+  .msg.user .bubble {
+    background: rgba(124,58,237,0.15);
+    border: 1px solid rgba(124,58,237,0.35);
+    border-top-right-radius: 2px;
+    color: #d8c8ff;
+  }
+  .msg.assistant .bubble {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top-left-radius: 2px;
+  }
+  .meta {
+    font-size: .68rem;
+    font-family: 'Space Mono', monospace;
+    color: var(--text-dim);
+    margin-top: 4px;
+    text-align: right;
+  }
+  .msg.assistant .meta { text-align: left; }
+
+  /* Code inside messages */
+  .bubble pre {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px;
+    overflow-x: auto;
+    margin: 8px 0;
+    font-family: 'Space Mono', monospace;
+    font-size: .78rem;
+    line-height: 1.5;
+  }
+  .bubble code { font-family: 'Space Mono', monospace; font-size: .85em; color: var(--accent); }
+  .bubble pre code { color: var(--text); }
+  .bubble p { margin-bottom: 6px; }
+  .bubble p:last-child { margin-bottom: 0; }
+  .bubble ul, .bubble ol { margin: 6px 0 6px 20px; }
+  .bubble li { margin-bottom: 3px; }
+  .bubble strong { color: var(--accent); }
+
+  /* Typing indicator */
+  .typing .bubble {
+    display: flex; gap: 5px; align-items: center;
+    padding: 14px 18px;
+  }
+  .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: blink 1.2s infinite;
+  }
+  .dot:nth-child(2) { animation-delay: .2s; }
+  .dot:nth-child(3) { animation-delay: .4s; }
+  @keyframes blink {
+    0%,80%,100% { opacity:.2; transform:scale(1); }
+    40%         { opacity:1;  transform:scale(1.3); }
+  }
+
+  /* ── Input Area ── */
+  .input-wrap {
+    padding: 14px 20px;
+    background: rgba(14,20,32,0.98);
+    border-top: 1px solid var(--border);
+    backdrop-filter: blur(12px);
+    flex-shrink: 0;
+  }
+  .input-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+  #userInput {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 11px 16px;
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-size: .9rem;
+    resize: none;
+    outline: none;
+    min-height: 44px;
+    max-height: 140px;
+    transition: border-color .2s, box-shadow .2s;
+    line-height: 1.5;
+  }
+  #userInput::placeholder { color: var(--text-dim); }
+  #userInput:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0,212,255,0.08);
+  }
+  #sendBtn {
+    background: var(--accent);
+    border: none;
+    color: #080b10;
+    width: 44px; height: 44px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .2s;
+    flex-shrink: 0;
+    font-weight: 700;
+  }
+  #sendBtn:hover:not(:disabled) {
+    background: #33ddff;
+    box-shadow: var(--glow);
+    transform: translateY(-1px);
+  }
+  #sendBtn:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+  .hint {
+    text-align: center;
+    font-size: .68rem;
+    color: var(--text-dim);
+    font-family: 'Space Mono', monospace;
+    margin-top: 8px;
+  }
+
+  /* ── Toast ── */
+  #toast {
+    position: fixed;
+    top: 70px; right: 20px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: .82rem;
+    font-family: 'Space Mono', monospace;
+    opacity: 0;
+    transform: translateX(20px);
+    transition: all .3s;
+    pointer-events: none;
+    z-index: 99;
+  }
+  #toast.show { opacity: 1; transform: translateX(0); }
+  #toast.success { border-color: var(--green); color: var(--green); }
+  #toast.error   { border-color: var(--red);   color: var(--red);   }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div class="logo">
+    <span class="bolt">⚡</span>
+    <span><span class="groq">Nova</span> AI Chatbot</span>
+    <div class="status-dot" id="statusDot"></div>
+  </div>
+
+  <div class="model-bar" id="modelBar">
+    <button class="model-btn active" data-model="llama-3.3-70b-versatile"  onclick="selectModel(this)">LLaMA 3.3 70B</button>
+    <button class="model-btn"        data-model="llama-3.1-8b-instant"     onclick="selectModel(this)">LLaMA 3.1 8B</button>
+    <button class="model-btn"        data-model="openai/gpt-oss-20b"        onclick="selectModel(this)">GPT-OSS 20B</button>
+  </div>
+
+  <div class="header-actions">
+    <button class="icon-btn danger" title="Clear Chat" onclick="clearChat()">🗑️</button>
+    <button class="icon-btn" title="Export Chat" onclick="exportChat()">💾</button>
+  </div>
+</header>
+
+<!-- Chat -->
+<div id="chat">
+  <div class="welcome" id="welcome">
+    <h2>⚡ Nova AI</h2>
+    <p>Ultra-fast LLaMA 3 powered by Nova AI</p>
+    <div class="chips">
+      <div class="chip" onclick="sendChip(this)">🧑‍💻 Help me write code</div>
+      <div class="chip" onclick="sendChip(this)">📊 Explain data analysis</div>
+      <div class="chip" onclick="sendChip(this)">📝 Summarise an article</div>
+      <div class="chip" onclick="sendChip(this)">💡 Give me a business idea</div>
+      <div class="chip" onclick="sendChip(this)">🔍 Debug my code</div>
+      <div class="chip" onclick="sendChip(this)">📚 Explain a concept simply</div>
+    </div>
+  </div>
+</div>
+
+<!-- Input -->
+<div class="input-wrap">
+  <div class="input-row">
+    <textarea id="userInput" rows="1" placeholder="Type your message… (Enter to send, Shift+Enter for new line)"></textarea>
+    <button id="sendBtn" onclick="sendMessage()">➤</button>
+  </div>
+  <div class="hint">Model: <span id="modelLabel">LLaMA 3.3 70B Versatile</span></div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const API_KEY = "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";
+const SYSTEM_PROMPT = {
+  role: "system",
+  content: "You are an expert AI assistant. You help with coding, business, academics, data analysis, and general knowledge. Be concise, clear, and friendly."
+};
+
+let history = [SYSTEM_PROMPT];
+let selectedModel = "llama-3.3-70b-versatile";
+let isLoading = false;
+
+const chatEl   = document.getElementById("chat");
+const inputEl  = document.getElementById("userInput");
+const sendBtn  = document.getElementById("sendBtn");
+const modelLbl = document.getElementById("modelLabel");
+
+// ── Model select ─────────────────────────────────────────
+const MODEL_NAMES = {
+  "llama-3.3-70b-versatile": "LLaMA 3.3 70B Versatile",
+  "llama-3.1-8b-instant":    "LLaMA 3.1 8B Instant",
+  "openai/gpt-oss-20b":      "GPT-OSS 20B"
+};
+function selectModel(btn) {
+  document.querySelectorAll(".model-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  selectedModel = btn.dataset.model;
+  modelLbl.textContent = MODEL_NAMES[selectedModel];
+  toast(`Model: ${MODEL_NAMES[selectedModel]}`, "success");
+}
+
+// ── Auto-resize textarea ─────────────────────────────────
+inputEl.addEventListener("input", () => {
+  inputEl.style.height = "auto";
+  inputEl.style.height = Math.min(inputEl.scrollHeight, 140) + "px";
+});
+inputEl.addEventListener("keydown", e => {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+
+// ── Chip shortcuts ───────────────────────────────────────
+function sendChip(el) {
+  inputEl.value = el.textContent.replace(/^[^\s]+\s/, "").trim();
+  sendMessage();
+}
+
+// ── Send message ─────────────────────────────────────────
+async function sendMessage() {
+  const text = inputEl.value.trim();
+  if (!text || isLoading) return;
+
+  document.getElementById("welcome")?.remove();
+  isLoading = true;
+  sendBtn.disabled = true;
+  inputEl.value = "";
+  inputEl.style.height = "auto";
+
+  appendMsg("user", text);
+  history.push({ role: "user", content: text });
+
+  const typingId = appendTyping();
+
+  try {
+    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${API_KEY}`
+      },
+      body: JSON.stringify({
+        model: selectedModel,
+        messages: history,
+        temperature: 0.7,
+        max_tokens: 1024
+      })
+    });
+
+    removeTyping(typingId);
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error?.message || `HTTP ${res.status}`);
+    }
+
+    const data = await res.json();
+    const reply = data.choices[0].message.content;
+    history.push({ role: "assistant", content: reply });
+    appendMsg("assistant", reply);
+
+  } catch (err) {
+    removeTyping(typingId);
+    appendMsg("assistant", `❌ Error: ${err.message}`);
+    toast(err.message, "error");
+  }
+
+  isLoading = false;
+  sendBtn.disabled = false;
+  inputEl.focus();
+}
+
+// ── Render helpers ───────────────────────────────────────
+function appendMsg(role, content) {
+  const div = document.createElement("div");
+  div.className = `msg ${role}`;
+
+  const avatar = document.createElement("div");
+  avatar.className = "avatar";
+  avatar.textContent = role === "user" ? "👤" : "🤖";
+
+  const wrap = document.createElement("div");
+
+  const bubble = document.createElement("div");
+  bubble.className = "bubble";
+  bubble.innerHTML = renderMarkdown(content);
+
+  const meta = document.createElement("div");
+  meta.className = "meta";
+  const now = new Date();
+  const t = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  meta.textContent = role === "user" ? t : `${MODEL_NAMES[selectedModel]} · ${t}`;
+
+  wrap.appendChild(bubble);
+  wrap.appendChild(meta);
+
+  div.appendChild(avatar);
+  div.appendChild(wrap);
+  chatEl.appendChild(div);
+  chatEl.scrollTop = chatEl.scrollHeight;
+  return div;
+}
+
+function appendTyping() {
+  const id = "typing-" + Date.now();
+  const div = document.createElement("div");
+  div.className = "msg assistant typing";
+  div.id = id;
+  div.innerHTML = `
+    <div class="avatar">🤖</div>
+    <div class="bubble"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
+  chatEl.appendChild(div);
+  chatEl.scrollTop = chatEl.scrollHeight;
+  return id;
+}
+function removeTyping(id) {
+  document.getElementById(id)?.remove();
+}
+
+// ── Simple markdown renderer ─────────────────────────────
+function renderMarkdown(text) {
+  return text
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    .replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) =>
+      `<pre><code>${code.trim()}</code></pre>`)
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*(.+?)\*/g, "<em>$1</em>")
+    .replace(/^### (.+)$/gm, "<h4>$1</h4>")
+    .replace(/^## (.+)$/gm, "<h3>$1</h3>")
+    .replace(/^# (.+)$/gm, "<h2>$1</h2>")
+    .replace(/^\* (.+)$/gm, "<li>$1</li>")
+    .replace(/^- (.+)$/gm, "<li>$1</li>")
+    .replace(/(<li>.*<\/li>)/s, "<ul>$1</ul>")
+    .replace(/\n\n/g, "</p><p>")
+    .replace(/^(?!<[huplb])(.+)$/gm, (m) => m ? m : "")
+    .replace(/\n/g, "<br>");
+}
+
+// ── Clear chat ───────────────────────────────────────────
+function clearChat() {
+  history = [SYSTEM_PROMPT];
+  chatEl.innerHTML = `
+    <div class="welcome" id="welcome">
+      <h2>⚡ Nova AI</h2>
+      <p>Ultra-fast LLaMA 3 powered by Nova AI</p>
+      <div class="chips">
+        <div class="chip" onclick="sendChip(this)">🧑‍💻 Help me write code</div>
+        <div class="chip" onclick="sendChip(this)">📊 Explain data analysis</div>
+        <div class="chip" onclick="sendChip(this)">📝 Summarise an article</div>
+        <div class="chip" onclick="sendChip(this)">💡 Give me a business idea</div>
+        <div class="chip" onclick="sendChip(this)">🔍 Debug my code</div>
+        <div class="chip" onclick="sendChip(this)">📚 Explain a concept simply</div>
+      </div>
+    </div>`;
+  toast("Conversation cleared", "success");
+}
+
+// ── Export chat ──────────────────────────────────────────
+function exportChat() {
+  const lines = history.slice(1).map(m =>
+    `[${m.role.toUpperCase()}]\n${m.content}\n`
+  ).join("\n---\n\n");
+  const blob = new Blob([lines], { type: "text/plain" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `groq-chat-${Date.now()}.txt`;
+  a.click();
+  toast("Chat exported!", "success");
+}
+
+// ── Toast ─────────────────────────────────────────────────
+let toastTimer;
+function toast(msg, type = "") {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.className = `show ${type}`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = ""; }, 2800);
+}
+
+inputEl.focus();
+</script>
+</body>
+</html>
