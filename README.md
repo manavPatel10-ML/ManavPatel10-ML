@@ -22,3 +22,30 @@
 
 ### 📊 Power BI Certificate
 <img src="powerbi-certificate.jpeg" width="500"/>
+
+# 🤖 Nova AI Chatbot
+
+🚀 A modern AI chatbot built using Groq API with beautiful UI.
+
+---
+
+## 🔥 Features
+- ⚡ Fast AI responses (LLaMA 3)
+- 🎨 Modern UI
+- 🔄 Multiple models
+- 💾 Chat export
+
+---
+
+## 🛠 Tech Stack
+- Python
+- HTML, CSS, JavaScript
+- Groq API
+
+---
+
+## ▶️ How to Run
+
+```bash
+pip install -r requirements.txt
+python app.py
