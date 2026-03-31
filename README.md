@@ -14,3 +14,6 @@
 
 ## 📊 GitHub Stats
 ![GitHub Stats](https://github-readme-stats.vercel.app/api?username=manavPatel10-ML&show_icons=true)
+
+![Excel Certificate](excel-certificate.jpeg)
+![Power BI Certificate](powerbi-certificate.jpeg)
