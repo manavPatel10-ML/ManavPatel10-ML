@@ -6,8 +6,8 @@ from rich.panel import Panel
 from datetime import datetime
 
 # ── Setup ─────────────────────────────────────────────────
-API_KEY = "enter your api key"   # 🔑 Replace with your new key
-client = NOVA(api_key=API_KEY)
+API_KEY = "YOUR_API_KEY"   # 🔑 Replace with your new key
+client = Groq(api_key=API_KEY)
 console = Console()
 
 # ── Available FREE Models on Groq ─────────────────────────
