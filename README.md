@@ -19,5 +19,6 @@
 
 ### 📈 Excel Certificate
 <img src="excel-certificate.jpeg" width="500"/>
+
 ### 📊 Power BI Certificate
 <img src="powerbi-certificate.jpeg" width="500"/>
